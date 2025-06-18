@@ -3,21 +3,29 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm
 from django.http import HttpResponse
+from .forms import StudentForm, TaskForm
 
 User = get_user_model()
 
 
 # Register View
+from django.shortcuts import render, redirect
+from .forms import CustomUserCreationForm
+
 def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('login')
+            return redirect('login')  #
+        else:
+
+            return render(request, 'schoolapp/register.html', {'form': form})
     else:
         form = CustomUserCreationForm()
+        return render(request, 'schoolapp/register.html', {'form': form})
 
-    return render(request, 'schoolapp/register.html', {'form': form})
+
 
 
 # Login View using Email
@@ -81,3 +89,28 @@ def add_student(request):
     if request.user.user_type != 'teacher':
         return HttpResponse("Unauthorized", status=401)
     return render(request, 'schoolapp/add_student.html')
+
+def add_student_view(request):
+    student_form = StudentForm()
+    task_form = TaskForm()
+
+    if request.method == 'POST':
+        if 'submit_student' in request.POST:
+            student_form = StudentForm(request.POST)
+            if student_form.is_valid():
+                student_form.save()
+                return redirect('h')
+
+        elif 'submit_task' in request.POST:
+            task_form = TaskForm(request.POST)
+            if task_form.is_valid():
+                task = task_form.save(commit=False)
+                task.assigned_by = request.user
+                task.save()
+                return redirect('home')
+
+    context = {
+        'student_form': student_form,
+        'task_form': task_form,
+    }
+    return render(request, 'schoolapp/add_student.html', context)

@@ -1,91 +1,79 @@
-/* General Page Layout */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(to right, #1e1e2f, #2c3e50);
-    color: #f0f0f0;
+body, html {
     margin: 0;
     padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    height: 100%;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     display: flex;
-    height: 100vh;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 }
 
-/* Form Container */
-.container {
-    background-color: #2d2d3a;
+.login-box {
+    background: rgba(255, 255, 255, 0.05);
     padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    width: 350px;
-}
-
-/* Heading */
-h2 {
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
     text-align: center;
-    margin-bottom: 30px;
-    color: #ffffff;
+    width: 350px;
+    color: white;
 }
 
-/* Labels */
-form label {
+.login-box h2 {
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
     display: block;
     margin-bottom: 5px;
-    color: #d1d1d1;
+    color: #ddd;
+    font-weight: bold;
 }
 
-/* Input Fields & Dropdown */
-form input[type="email"],
-form input[type="password"],
-form input[type="text"],
-form select {
+.input-group input,
+.input-group select {
     width: 100%;
     padding: 10px;
-    margin-bottom: 20px;
     border: none;
     border-radius: 8px;
-    background-color: #404050;
-    color: #fff;
-    font-size: 14px;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
 }
 
-/* Submit Button */
-form button {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(to right, #6a11cb, #2575fc);
-    color: #fff;
+.input-group input::placeholder {
+    color: #ccc;
+}
+
+.login-btn {
+    background: linear-gradient(to right, #7b2ff7, #22c1c3);
     border: none;
+    padding: 10px 30px;
     border-radius: 8px;
+    color: white;
     font-size: 16px;
     cursor: pointer;
+    margin-top: 10px;
     transition: background 0.3s ease;
 }
 
-form button:hover {
-    background: linear-gradient(to right, #8e2de2, #4a00e0);
+.login-btn:hover {
+    background: linear-gradient(to right, #22c1c3, #7b2ff7);
 }
 
-/* Link Text */
-p {
-    text-align: center;
+.register-link {
     margin-top: 15px;
+    color: #ccc;
     font-size: 14px;
 }
 
-p a {
-    color: #1e90ff;
+.register-link a {
+    color: #00aaff;
     text-decoration: none;
-}
-
-p a:hover {
-    text-decoration: underline;
-}
-
-/* Mobile Responsive */
-@media (max-width: 400px) {
-    .container {
-        width: 90%;
-        padding: 20px;
-    }
 }
