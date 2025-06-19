@@ -1,56 +1,50 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser
+from .models import CustomUser, Student, Subject
+from django.forms.models import inlineformset_factory
 from django import forms
-from .models import Student, Task
-
+from .models import Task
 
 
 
 class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    username = forms.CharField(
-        max_length=150,
-        required=True,
-        label="Username",
-        help_text=""
-    )
-    password1 = forms.CharField(
-        label="Password",
-        strip=False,
-        widget=forms.PasswordInput,
-        help_text=""
-    )
-    password2 = forms.CharField(
-        label="Confirm Password",
-        widget=forms.PasswordInput,
-        strip=False,
-        help_text=""
-    )
-
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'password1', 'password2', 'user_type']
+        widgets = {
+            'username': forms.TextInput(attrs={'placeholder': 'Username'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Email'}),
+            'password1': forms.PasswordInput(attrs={'placeholder': 'Password'}),
+            'password2': forms.PasswordInput(attrs={'placeholder': 'Confirm Password'}),
+        }
 
-    def clean_password1(self):
-        password = self.cleaned_data.get('password1')
-        if len(password) < 8:
-            raise forms.ValidationError("Password is too short. Minimum 8 characters required.")
-        if not any(char.isupper() for char in password):
-            raise forms.ValidationError("Password must contain at least one uppercase letter.")
-        return password
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for fieldname in ['username', 'password1', 'password2']:
+            self.fields[fieldname].help_text = ''
+        self.fields['username'].error_messages.update({
+            'unique': 'This username already exists. Please choose another.'
+        })
+        self.fields['email'].error_messages.update({
+            'unique': 'This email is already registered.'
+        })
+
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ['name', 'roll_number', 'student_class', 'attendance']
+        widgets = {
+            'attendance': forms.NumberInput(attrs={'placeholder': 'Enter attendance in %'})
+        }
+
+SubjectFormSet = inlineformset_factory(Student, Subject, fields=('name', 'percentage'), extra=1, can_delete=True)
 
 
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['student', 'title', 'description', 'due_date']
+        fields = ['title', 'description']
         widgets = {
-            'due_date': forms.DateInput(attrs={'type': 'date'})
+            'title': forms.TextInput(attrs={'placeholder': 'Enter task title'}),
+            'description': forms.Textarea(attrs={'placeholder': 'Enter task description'}),
         }
-
-
-class StudentForm(forms.ModelForm):
-    class Meta:
-        model = Student
-        fields = ['name', 'student_class', 'roll_number']

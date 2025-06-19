@@ -3,31 +3,27 @@
 <html>
 <head>
     <title>Dashboard</title>
-<link rel="stylesheet" href="{% static 'css/stylee.css' %}"></head>
+    <link rel="stylesheet" href="{% static 'css/styleee.css' %}">
+</head>
 <body>
     <div class="navbar">
         <h1>📘 School LMS</h1>
         <div>
             {% if user_type == 'teacher' %}
+
                 <a href="{% url 'add_student' %}">Add Student</a>
             {% endif %}
             <a class="logout-btn" href="{% url 'logout' %}">Logout</a>
         </div>
     </div>
-
     <div class="container">
         <h2>Welcome, {{ user.username }}</h2>
-
         {% if user_type == 'teacher' %}
             <h3>Teacher Dashboard</h3>
             <p>Email: {{ user.email }}</p>
-            <p>Use the navbar to add student records.</p>
-
         {% elif user_type == 'student' %}
             <h3>Student Dashboard</h3>
             <p>Email: {{ user.email }}</p>
-            <p>Your current class, subjects, and attendance details will be shown here.</p>
-
         {% else %}
             <p>User type not recognized.</p>
         {% endif %}
