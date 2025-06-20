@@ -3,29 +3,64 @@
 <html>
 <head>
     <title>Dashboard</title>
-    <link rel="stylesheet" href="{% static 'css/styleee.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 </head>
 <body>
+    <!-- Navbar -->
     <div class="navbar">
-        <h1>📘 School LMS</h1>
-        <div>
+        <div class="navbar-left">
+            <h1>📘 School LMS</h1>
+        </div>
+        <div class="navbar-right">
             {% if user_type == 'teacher' %}
-
-                <a href="{% url 'add_student' %}">Add Student</a>
+                <a href="{% url 'add_student' %}" class="nav-btn">Add Student</a>
             {% endif %}
-            <a class="logout-btn" href="{% url 'logout' %}">Logout</a>
+            <a href="{% url 'logout' %}" class="nav-btn logout">Logout</a>
         </div>
     </div>
+
+    <!-- Dashboard Container -->
     <div class="container">
+        <!-- ✅ Message Display Block -->
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <!-- User Info -->
         <h2>Welcome, {{ user.username }}</h2>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+
+        <!-- Teacher View -->
         {% if user_type == 'teacher' %}
             <h3>Teacher Dashboard</h3>
-            <p>Email: {{ user.email }}</p>
+            <p>Here you can manage students and tasks.</p>
+
+        <!-- Student View -->
         {% elif user_type == 'student' %}
             <h3>Student Dashboard</h3>
-            <p>Email: {{ user.email }}</p>
-        {% else %}
-            <p>User type not recognized.</p>
+            <p><strong>Class:</strong> {{ student.student_class }}</p>
+            <p><strong>Roll Number:</strong> {{ student.roll_number }}</p>
+            <p><strong>Attendance:</strong> {{ student.attendance }}%</p>
+
+            <h4>Subjects</h4>
+            <ul>
+                {% for subject in student.subjects.all %}
+                    <li>{{ subject.name }} - {{ subject.percentage }}%</li>
+                {% endfor %}
+            </ul>
+
+            <h4>Tasks</h4>
+            <ul>
+                {% for task in tasks %}
+                    <li><strong>{{ task.title }}</strong>: {{ task.description }}</li>
+                {% empty %}
+                    <li>No tasks assigned yet.</li>
+                {% endfor %}
+            </ul>
         {% endif %}
     </div>
 </body>

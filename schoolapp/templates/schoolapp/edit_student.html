@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Student</title>
+    <link rel="stylesheet" href="{% static 'css/styleee.css' %}">
+</head>
+<body>
+<div class="centered-container">
+    <h2>Edit Student</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ student_form.as_p }}
+        {{ subject_formset.management_form }}
+        {% for form in subject_formset %}
+            {{ form.as_p }}
+        {% endfor %}
+        <button type="submit" class="btn">Update</button>
+    </form>
+
+    <a href="{% url 'add_student' %}" class="btn">Back to Add to Student </a>
+</div>
+</body>
+</html>
