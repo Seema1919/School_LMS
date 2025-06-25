@@ -1,37 +1,15 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-
-from django.http import HttpResponse
-from .forms import CustomUserCreationForm
+import pyotp
 from .models import  CustomUser
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import StudentForm, SubjectFormSet, TaskForm
 from .models import Student, Subject, Task
-
-User = CustomUser
-from django.shortcuts import get_object_or_404
-from django.contrib import messages
-
-def verify_otp_view(request):
-    if request.method == 'POST':
-        user_id = request.session.get('otp_user_id')
-        user = get_object_or_404(CustomUser, id=user_id)
-
-        entered_otp = request.POST.get('otp')
-        totp = pyotp.TOTP(user.totp_secret)
-
-        if totp.verify(entered_otp):
-            user.is_active = True
-            user.is_verified = True
-            user.save()
-            messages.success(request, "Account verified successfully!")
-            return redirect('login')
-        else:
-            messages.error(request, "Invalid OTP. Try again.")
-
-    return render(request, 'schoolapp/verify_otp.html')
+from django.forms.models import inlineformset_factory
+from .forms import CustomUserCreationForm
+from .models import OtpToken
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.core.mail import send_mail
+from django.contrib.auth import authenticate, login, logout
 
 
 @login_required
@@ -41,81 +19,109 @@ def dashboard_view(request):
         'user_type': request.user.user_type,
     })
 
+#register
 
 
-from django.shortcuts import render, redirect
-from django.core.mail import send_mail
-import pyotp
-from .models import CustomUser
-from .forms import CustomUserCreationForm  # Use your custom form
-
-def register_view(request):
+def register(request):
+    form = CustomUserCreationForm()
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  # Deactivate account until OTP verified
-            user.totp_secret = pyotp.random_base32()  # Generate new secret
-            user.save()
+            form.save()
+            messages.success(request, "Account created successfully! An OTP was sent to your Email")
+            return redirect("verify_email", username=request.POST['username'])
+    context = {"form": form}
+    return render(request, "schoolapp/register.html", context)
 
-            # Generate OTP
-            totp = pyotp.TOTP(user.totp_secret)
-            otp_code = totp.now()
 
-            # Send OTP to user email
+def verify_email(request, username):
+    user = get_user_model().objects.get(username=username)
+    user_otp = OtpToken.objects.filter(user=user).last()
+
+    if request.method == 'POST':
+        # valid token
+        if user_otp.otp_code == request.POST['otp_code']:
+
+            # checking for expired token
+            if user_otp.otp_expires_at > timezone.now():
+                user.is_active = True
+                user.save()
+                messages.success(request, "Account activated successfully!! You can Login.")
+                return redirect("register")
+
+            # expired token
+            else:
+                messages.warning(request, "The OTP has expired, get a new OTP!")
+                return redirect("verify_email", username=user.username)
+
+
+        # invalid otp code
+        else:
+            messages.warning(request, "Invalid OTP entered, enter a valid OTP!")
+            return redirect("verify_email", username=user.username)
+
+    context = {}
+    return render(request, "schoolapp/verify_email.html", context)
+
+
+def resend_otp(request):
+    if request.method == 'POST':
+        user_email = request.POST["otp_email"]
+
+        if get_user_model().objects.filter(email=user_email).exists():
+            user = get_user_model().objects.get(email=user_email)
+            otp = OtpToken.objects.create(user=user, otp_expires_at=timezone.now() + timezone.timedelta(minutes=5))
+
+            # email variables
+            subject = "Email Verification"
+            message = f"""
+                                Hi {user.username}, here is your OTP {otp.otp_code} 
+                                it expires in 5 minute, use the url below to redirect back to the website
+                                http://127.0.0.1:8000/verify_email/{user.username}
+
+                                """
+            sender = "clintonmatics@gmail.com"
+            receiver = [user.email, ]
+
+            # send email
             send_mail(
-                'Your OTP Verification Code',
-                f'Your verification code is: {otp_code}',
-                'noreply@yourdomain.com',
-                [user.email],
+                subject,
+                message,
+                sender,
+                receiver,
+                fail_silently=False,
             )
 
-            request.session['otp_user_id'] = user.id
-            return redirect('verify_otp')  # You need to create this view and template
-    else:
-        form = CustomUserCreationForm()
+            messages.success(request, "A new OTP has been sent to your email-address")
+            return redirect("verify_email", username=user.username)
 
-    return render(request, 'schoolapp/register.html', {'form': form})
+        else:
+            messages.warning(request, "This email dosen't exist in the database")
+            return redirect("resend_otp")
+
+    context = {}
+    return render(request, "schoolapp/resend_otp.html", context)
 
 
-
-
-
-def login_view(request):
-    error_message = None
+def login(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        try:
-            user_obj = User.objects.get(email=email)
-        except User.DoesNotExist:
-            error_message = 'Invalid email or password'
-            return render(request, 'schoolapp/login.html', {'error_message': error_message})
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
 
-        user = authenticate(request, username=user_obj.username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('dashboard')
+            messages.success(request, f"Hi {request.user.username}, you are now logged-in")
+            return redirect("dashboard")
+
         else:
-            error_message = 'Invalid email or password'
-    return render(request, 'schoolapp/login.html', {'error_message': error_message})
+            messages.warning(request, "Invalid credentials")
+            return redirect("signin")
+
+    return render(request, "schoolapp/login.html")
 
 
-
-
-@login_required
-def logout_view(request):
-    logout(request)
-    return redirect('login')
-
-
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.http import HttpResponse
-from .models import Student, Task
-
+#dashborad_view
 @login_required
 def dashboard_view(request):
     context = {
@@ -137,10 +143,11 @@ def dashboard_view(request):
             messages.error(request, "Student record not found. Please contact your teacher.")
             return redirect('login')
 
-    return redirect('login')  # For unknown user_type
+    return redirect('login')
 
 
 
+# edit student
 @login_required
 def edit_student_view(request, student_id):
     student = get_object_or_404(Student, id=student_id)
@@ -151,14 +158,6 @@ def edit_student_view(request, student_id):
         return redirect('dashboard')
     return render(request, 'schoolapp/edit_student.html', {'form': form})
 
-
-# Delete Student
-@login_required
-def delete_student_view(request, student_id):
-    student = get_object_or_404(Student, id=student_id)
-    student.delete()
-    messages.success(request, 'Student deleted.')
-    return redirect('dashboard')
 
 
 # Add Task
@@ -217,14 +216,13 @@ def add_student_view(request):
     show_student_form = False
     show_task_form = False
 
-    # ✅ Corrected GET method handling
     if request.method == 'GET':
         if 'show_student_form' in request.GET:
             show_student_form = True
         elif 'show_task_form' in request.GET:
             show_task_form = True
 
-    # ✅ POST form submissions
+
     elif request.method == 'POST':
         if 'submit_student' in request.POST:
             student_form = StudentForm(request.POST)
@@ -256,7 +254,7 @@ def add_student_view(request):
                 except Student.DoesNotExist:
                     messages.error(request, "Selected student not found.")
 
-    # ✅ Always show students created by this user
+    #  Always show students created by this user
     students = Student.objects.filter(created_by=request.user).prefetch_related('subjects', 'tasks')
 
     return render(request, 'schoolapp/add_student.html', {
@@ -268,7 +266,6 @@ def add_student_view(request):
         'show_task_form': show_task_form,
     })
 
-from django.forms.models import inlineformset_factory
 
 
 @login_required
@@ -287,7 +284,7 @@ def edit_task_view(request, task_id):
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
-def verify_otp_view(request):
+def verify_otp(request):
     if request.method == 'POST':
         otp_entered = request.POST.get('otp')
         user_id = request.session.get('otp_user_id')
@@ -297,10 +294,10 @@ def verify_otp_view(request):
         if totp.verify(otp_entered):
             user.is_active = True
             user.save()
-            del request.session['otp_user_id']  # ✅ Optional cleanup
             messages.success(request, "Account verified. You can now log in.")
             return redirect('login')
         else:
             messages.error(request, "Invalid OTP. Try again.")
 
-    return render(request, 'schoolapp/verify_otp.html')
+    return render(request, 'schoolapp/verify_email.html')
+

@@ -1,31 +1,25 @@
+
+
+
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-<div class="form-container">
-    <div class="form-box">
-        <h2>Login</h2>
-        <form method="POST">
-            {% csrf_token %}
-            {% if error_message %}
-                <p class="error">{{ error_message }}</p>
-            {% endif %}
-            <div class="input-group">
-                <label>Email:</label>
-                <input type="email" name="email" required>
-            </div>
-            <div class="input-group">
-                <label>Password:</label>
-                <input type="password" name="password" required>
-            </div>
-            <button type="submit" class="submit-btn">Login</button>
-            <p class="register-link">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
-        </form>
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+
+
+<form action="" method='POST'>
+    {% csrf_token %}
+    <h3><strong>Login Form</strong></h3>
+    <div class="mb-3">
+        <label class="form-label">Email Address</label>
+        <input class="form-control" name="username" placeholder="Enter email-address">
     </div>
-</div>
-</body>
-</html>
+
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input class="form-control" type="password" name="password" placeholder="Enter password">
+    </div>
+
+    <button class="btn btn-primary" style="width:100%">Login to your account</button>
+    <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+</form>
+
+

@@ -1,10 +1,7 @@
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
+
 from .models import CustomUser, Student, Subject
 from django.forms.models import inlineformset_factory
-from django import forms
 from .models import Task
-
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError

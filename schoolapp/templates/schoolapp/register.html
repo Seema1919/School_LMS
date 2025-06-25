@@ -7,33 +7,36 @@
 </head>
 <body>
 <div class="form-container">
-   <form method="POST">
-    <h2>Register</h2>
-    {% csrf_token %}
-    {{ form.non_field_errors }}
+    <form method="POST">
+        <h2>Register</h2>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
 
-    <label for="id_username">Username:</label>
-    {{ form.username }}
-    {{ form.username.errors }}
+        <label for="id_username">Username:</label>
+        {{ form.username }}
+        {{ form.username.errors }}
 
-    <label for="id_email">Email:</label>
-    {{ form.email }}
-    {{ form.email.errors }}
+        <label for="id_email">Email:</label>
+        {{ form.email }}
+        {{ form.email.errors }}
 
-    <label for="id_password1">Password:</label>
-    {{ form.password1 }}
-    {{ form.password1.errors }}
+        <label for="id_password1">Password:</label>
+        {{ form.password1 }}
+        {{ form.password1.errors }}
 
-    <label for="id_password2">Confirm Password:</label>
-    {{ form.password2 }}
-    {{ form.password2.errors }}
+        <label for="id_password2">Confirm Password:</label>
+        {{ form.password2 }}
+        {{ form.password2.errors }}
 
-    <label for="id_user_type">User Type:</label>
-    {{ form.user_type }}
-    {{ form.user_type.errors }}
+        <label for="id_user_type">User Type:</label>
+        {{ form.user_type }}
+        {{ form.user_type.errors }}
 
-    <button type="submit">Register</button>
-                <p class="login-link"> have an account? <a href="{% url 'login' %}">Login</a></p>
-
-</form>
+        <button type="submit">Register</button>
+        <p class="login-link">Have an account? <a href="{% url 'login' %}">Login</a></p>
+    </form>
 </div>
+
+
+</body>
+</html>

@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from django.conf.global_settings import EMAIL_USE_SSL
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -57,7 +59,7 @@ ROOT_URLCONF = 'schoolproject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-'DIRS': [BASE_DIR / 'schoolapp' / 'templates'],
+         'DIRS': [BASE_DIR / 'schoolapp' / 'templates'],
 
         'APP_DIRS': True,
         'OPTIONS': {
@@ -127,3 +129,23 @@ SESSION_SAVE_EVERY_REQUEST = True
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Use SMTP in production
+
+
+AUTH_USER_MODEL = 'schoolapp.CustomUser'
+
+
+
+# Use Gmail SMTP for sending email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your_email@gmail.com'  # 👈 your Gmail
+EMAIL_HOST_PASSWORD = 'your app password'
+EMAIL_USE_TLS= True
+EMAIL_USE_SSL= False
+
+
+
+
+
